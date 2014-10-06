@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <!-- Inherit our applications main module.                      -->
+  <inherits name='fr.istic.m2gl.gli.gli' />
+
+  <!-- Specify the path to any remote services.                   -->
+  <servlet path="/gli/greet" class="fr.istic.m2gl.gli.server.GreetingServiceImpl" />
+
+</module>
