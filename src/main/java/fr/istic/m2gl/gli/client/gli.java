@@ -34,14 +34,14 @@ public class gli implements EntryPoint {
       AbsolutePanel p = new AbsolutePanel();
       p.setHeight("500px");
       p.setHeight("500px");
-      final TextBox tb = new TextBox();
-      p.add(tb,20,20);
+      //final TextBox tb = new TextBox();
+      //p.add(tb,20,20);
 
-      tb.addChangeHandler(new ChangeHandler() {
-          public void onChange(ChangeEvent changeEvent) {
-              Window.alert(tb.getText());
-          }
-      });
+//      tb.addChangeHandler(new ChangeHandler() {
+//          public void onChange(ChangeEvent changeEvent) {
+//              Window.alert(tb.getText());
+//          }
+//      });
       com.google.gwt.user.client.ui.Button b = new Button();
       b.setText("getEvents()");
       p.add(b,20, 50);
