@@ -7,31 +7,25 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 
 import fr.istic.m2gl.gli.shared.Car;
-import fr.istic.m2gl.gli.shared.CarItf;
 import fr.istic.m2gl.gli.shared.Event;
-import fr.istic.m2gl.gli.shared.EventItf;
 import fr.istic.m2gl.gli.shared.Participant;
 
 /**
  * TAA - TP 1 - JPA test : Event and car pooling manager.
  * @author Victor PETIT - Amandine MANCEAU 
  */
-public class EventList {
-	
+public class EventService {
+
 	public EntityManager manager;
 	EntityTransaction tx;
-	
-	public EventList(EntityManager manager, EntityTransaction tx){
+
+	public EventService(EntityManager manager, EntityTransaction tx){
 		this.manager = manager;
 		this.tx = tx;
 	}
-	
-	public void addEvent(String date, String place){
-		EventItf event;
+
+	public void addEvent(Event event){
 		try {
-			event = new Event();
-			event.setDate(date);
-			event.setPlace(place);
 			tx.begin();
 			manager.persist(event);
 		} catch (NoResultException e) {
@@ -44,19 +38,19 @@ public class EventList {
 			tx.commit();
 		}
 	}
-	
+
 	public List<Event> getEvents(){
-		//return the list of all events
+		//returns the list of all events
 		return manager.createQuery("FROM Event").getResultList();
 	}
-	
+
 	public Event getEvent(int id){
-		//return the id selected event 
+		//returns the event selected by the id
 		Event event = (Event) manager.createQuery(
 				"FROM Event WHERE id="+id).getSingleResult();
 		return(event);
 	}
-	
+
 	public Participant addParticipant(int idEvent, String name){
 		tx.begin();
 		Event event = getEvent(idEvent);
@@ -67,9 +61,7 @@ public class EventList {
 		tx.commit();
 		return participant;
 	}
-	
 
-	
 	public void addCar(int idEvent, int nbSeat){
 		tx.begin();
 		Event event = getEvent(idEvent);
@@ -79,17 +71,20 @@ public class EventList {
 		manager.persist(car);
 		tx.commit();
 	}
-	
-	public void addToCar(int idCar, Participant participant){
+
+	public void addToCar(int idCar, String participantName){
 		tx.begin();
-		Car car = (Car) manager.createQuery(
-				"FROM Car WHERE id="+idCar).getSingleResult();
-		//List<Participant> participants = (List<Participant>) manager.createQuery("FROM Participant").getResultList();
-		//Participant participant = participants.get(0);
-		participant.setCar(car);
-		car.getPassengers().add(participant);
-		car.takeSeat();
+		Car car = manager.find(Car.class, idCar);
+		try {
+			Participant participant = (Participant) manager.createQuery(
+					"SELECT p FROM Participant p WHERE p.name='"+participantName+"'").getSingleResult();
+			participant.setCar(car);
+			car.getPassengers().add(participant);
+			car.takeSeat();
+		} catch ( NoResultException e ) {
+			System.err.println("Unable to find participant called "+participantName);
+		}
 		tx.commit();
 	}
-	
+
 }

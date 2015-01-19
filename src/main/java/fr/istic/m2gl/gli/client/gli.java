@@ -1,5 +1,9 @@
 package fr.istic.m2gl.gli.client;
 
+import java.util.List;
+
+import org.hibernate.ejb.event.ListenerCallback;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -11,13 +15,24 @@ import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
+import fr.istic.m2gl.gli.shared.CarItf;
+import fr.istic.m2gl.gli.shared.Event;
 import fr.istic.m2gl.gli.shared.EventItf;
+import fr.istic.m2gl.gli.shared.EventListItf;
 
 /**
- * Entry point classes define <code>onModuleLoad()</code>.
+ * This class contains the Entry point of the GWT application.
  */
 public class gli implements EntryPoint {
 	/**
@@ -28,47 +43,166 @@ public class gli implements EntryPoint {
 			+ "attempting to contact the server. Please check your network "
 			+ "connection and try again.";
 
-	/**
-	 * Create a remote service proxy to talk to the server-side Greeting service.
-	 */
-	private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
+	private RootPanel root = RootPanel.get();
 
-	private final Messages messages = GWT.create(Messages.class);
+	private FlexTable tableEvents;
+	
+	public Widget searchWidget(){
+		HorizontalPanel hp = new HorizontalPanel();
+		final Button sendButton = new Button("get event");
+		final Button allButton = new Button("all events");
+		final TextBox idEventArea = new TextBox();
+		final Label label = new Label("id de l'event");
+		idEventArea.setValue("1");
+		sendButton.addClickHandler(new ClickHandler() {
 
-	/**
-	 * This is the entry point method.
-	 */
-	public void onModuleLoad() {
-
-		// Create a text
-		final TextBox area = new TextBox();
-		area.setValue("");
-		RootPanel.get().add(area);
-		// Create a button
-		com.google.gwt.user.client.ui.Button b = new Button();
-		b.setText("getEvents()");
-		RootPanel.get().add(b);
-		
-		b.addClickHandler(new ClickHandler() {
-			
-			public void onClick(ClickEvent event) {
-				
-				RequestBuilder rb = new RequestBuilder(RequestBuilder.GET,
-														"http://localhost:8888/rest/events");
+			public void onClick(ClickEvent clickEvent) {
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, GWT
+						.getHostPageBaseURL() + "rest/events/"+idEventArea.getText());
 				rb.setCallback(new RequestCallback() {
+
+					public void onResponseReceived(Request request, Response response) {
+
+						EventItf event = EventJsonConverter.getInstance()
+								.deserializeFromJson(response.getText());
+						showEvent(event, 1);
+					}
+
+					public void showEvent(EventItf event, int i){
+						clearTable();
+						tableEvents.setText(i, 0, Integer.toString(event.getId()));
+						tableEvents.setText(i, 1, event.getPlace());
+						tableEvents.setText(i, 2, event.getDate());
+						tableEvents.setText(i, 3, Integer.toString(event.getParticipants().size()));
+						tableEvents.setWidget(i, 4, addParticipantWidget());
+						tableEvents.setText(i, 5, Integer.toString(event.getCars().size()));
+					}
 					
+					public void clearTable(){
+						int count = tableEvents.getRowCount()-1;
+						while (count > 0) {
+						   tableEvents.removeRow(count);
+						   count--;
+						}
+					}
+
 					public void onError(Request request, Throwable exception) {
 						Window.alert(exception.getMessage());
 					}
-					
+				});
+
+				try {
+					rb.send();
+				} catch (RequestException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		allButton.addClickHandler(new ClickHandler() {
+
+			public void onClick(ClickEvent clickEvent) {
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, GWT
+						.getHostPageBaseURL() + "rest/events");
+				rb.setCallback(new RequestCallback() {
+
 					public void onResponseReceived(Request request, Response response) {
-						Window.alert("toto" + response.getStatusCode() + " tutu " + response.getText().length());
-						
-						/*	EventItf b = EventJsonConverter.getInstance()
-									.deserializeFromJson(response.getText());
-							Window.alert("get the event from :" + b.getId()
-									+ " isbn : " + b.getPlace().toString());*/
-						
+
+						EventListItf eventsObject = EventListJsonConverter.getInstance()
+								.deserializeFromJson(response.getText());
+						List<EventItf> events = eventsObject.getevents();
+						int i = 1;
+						for (EventItf event : events ){
+							showEvent(event, i);
+							i++;
+						}
+					}
+
+					public void showEvent(EventItf event, int i){
+						tableEvents.setText(i, 0, Integer.toString(event.getId()));
+						tableEvents.setText(i, 1, event.getPlace());
+						tableEvents.setText(i, 2, event.getDate());
+						tableEvents.setText(i, 3, Integer.toString(event.getParticipants().size()));
+						//CarItf cars = CarJsonConverter.getInstance().deserializeFromJson(event.getCars());
+						//cars = event.getCars().get(1);
+						//Window.alert(Integer.toString(cars.getId()));
+						//Window.alert(Integer.toString(event.getCars().get(1).getId()));
+						//tableEvents.setText(i, 4, event.getParticipants().get(0).getName());
+						tableEvents.setWidget(i, 4, addParticipantWidget());
+						tableEvents.setText(i, 5, Integer.toString(event.getCars().size()));
+					}
+
+					public void onError(Request request, Throwable exception) {
+						Window.alert(exception.getMessage());
+					}
+				});
+
+				try {
+					rb.send();
+				} catch (RequestException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		hp.add(label);
+		hp.add(idEventArea);
+		hp.add(sendButton);
+		hp.add(allButton);
+		return hp;
+	}
+
+	public Widget displayWidget(){
+		FlowPanel fp = new FlowPanel();
+
+		tableEvents = new FlexTable();
+		tableEvents.setTitle("Events");	
+		tableEvents.setBorderWidth(1);
+		tableEvents.setText(0, 0,"Id");
+		tableEvents.setText(0, 1,"Evenement");
+		tableEvents.setText(0, 2,"Date/Heure");
+		tableEvents.setText(0, 3,"Nombre de participants");
+		tableEvents.setText(0, 4,"Liste des participants");
+		tableEvents.setText(0, 5,"Nombre de voitures");
+		tableEvents.setText(0, 6,"Liste des voitures");
+		tableEvents.setCellSpacing(2);
+		fp.add(tableEvents);
+		return fp;
+	}
+
+	public Widget addEventWidget(){
+		VerticalPanel vp = new VerticalPanel();
+		Label title = new HTML("<h3>Ajouter un événement</h3>");
+
+		HorizontalPanel hp1 = new HorizontalPanel();
+		Label nameEventLabel = new Label("Nom et lieu :");
+		final TextBox nameEventTextBox = new TextBox();
+		hp1.add(nameEventLabel);
+		hp1.add(nameEventTextBox);
+
+		HorizontalPanel hp2 = new HorizontalPanel();
+		Label dateEventLabel = new Label("Date et heure :");
+		final TextBox dateEventTextBox = new TextBox();
+		hp2.add(dateEventLabel);
+		hp2.add(dateEventTextBox);
+
+		Button sendButton = new Button("Creer");
+		sendButton.addClickHandler(new ClickHandler() {
+
+			public void onClick(ClickEvent clickEvent) {
+
+				EventItf event = EventJsonConverter.getInstance().makeEvent();
+				event.setDate(dateEventTextBox.getText());
+				event.setPlace(nameEventTextBox.getText());
+
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.POST,
+						GWT.getHostPageBaseURL()+ "rest/addEvent");
+				rb.setHeader("Content-Type", "application/json");
+				rb.setRequestData(EventJsonConverter.getInstance().serializeToJson(event));
+				rb.setCallback(new RequestCallback() {
+					public void onResponseReceived(Request request, Response response) {
+					}
+					public void onError(Request request, Throwable exception) {
+						Window.alert(exception.getMessage());
 					}
 				});
 				try {
@@ -78,5 +212,39 @@ public class gli implements EntryPoint {
 				}
 			}
 		});
+		vp.add(title);
+		vp.add(hp1);
+		vp.add(hp2);
+		vp.add(sendButton);
+		return vp;
 	}
+	
+	public Widget addParticipantWidget(){
+		Panel root = new FlowPanel();
+		final Button addParticipantButton = new Button();
+		final Button sendButton = new Button();
+		
+		HorizontalPanel hp1 = new HorizontalPanel();
+		Label nameLabel = new Label("Nom :");
+		final TextBox nameTextBox = new TextBox();
+		hp1.add(nameLabel);
+		hp1.add(nameTextBox);
+		hp1.add(sendButton);
+		
+		root.add(addParticipantButton);
+		root.add(hp1);
+		return root;
+				
+	}
+
+	public void onModuleLoad() {
+		HorizontalPanel Hpanel = new HorizontalPanel();
+		VerticalPanel Vpanel = new VerticalPanel();
+		Vpanel.add(searchWidget());
+		Vpanel.add(displayWidget());
+		Hpanel.add(Vpanel);
+		Hpanel.add(addEventWidget());
+		root.add(Hpanel);
+	}
+
 }
