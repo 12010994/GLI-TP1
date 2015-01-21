@@ -5,12 +5,6 @@
 
 <web-app>
 
-	<!-- Servlets -->
-	<servlet>
-		<servlet-name>greetServlet</servlet-name>
-		<servlet-class>fr.istic.m2gl.gli.server.GreetingServiceImpl</servlet-class>
-	</servlet>
-
 	<servlet>
 		<servlet-name>jersey</servlet-name>
 		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
@@ -26,10 +20,6 @@
 	</servlet>
 
 
-	<servlet-mapping>
-		<servlet-name>greetServlet</servlet-name>
-		<url-pattern>/gli/greet</url-pattern>
-	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>jersey</servlet-name>
 		<url-pattern>/rest/*</url-pattern>

@@ -30,6 +30,7 @@ import fr.istic.m2gl.gli.shared.CarItf;
 import fr.istic.m2gl.gli.shared.Event;
 import fr.istic.m2gl.gli.shared.EventItf;
 import fr.istic.m2gl.gli.shared.EventListItf;
+import fr.istic.m2gl.gli.shared.ParticipantItf;
 
 /**
  * This class contains the Entry point of the GWT application.
@@ -69,13 +70,18 @@ public class gli implements EntryPoint {
 					}
 
 					public void showEvent(EventItf event, int i){
+						VerticalPanel wrapper = new VerticalPanel();
 						clearTable();
 						tableEvents.setText(i, 0, Integer.toString(event.getId()));
 						tableEvents.setText(i, 1, event.getPlace());
 						tableEvents.setText(i, 2, event.getDate());
 						tableEvents.setText(i, 3, Integer.toString(event.getParticipants().size()));
-						tableEvents.setWidget(i, 4, addParticipantWidget());
+						tableEvents.setWidget(i, 4, addParticipantWidget(event.getId()));
 						tableEvents.setText(i, 5, Integer.toString(event.getCars().size()));
+						wrapper.add(addCarWidget(event.getId()));
+						wrapper.add(addPassengerWidget(event.getId(),1));
+						tableEvents.setWidget(i, 6, wrapper);
+						
 					}
 					
 					public void clearTable(){
@@ -119,6 +125,7 @@ public class gli implements EntryPoint {
 					}
 
 					public void showEvent(EventItf event, int i){
+						VerticalPanel wrapper = new VerticalPanel();
 						tableEvents.setText(i, 0, Integer.toString(event.getId()));
 						tableEvents.setText(i, 1, event.getPlace());
 						tableEvents.setText(i, 2, event.getDate());
@@ -128,8 +135,11 @@ public class gli implements EntryPoint {
 						//Window.alert(Integer.toString(cars.getId()));
 						//Window.alert(Integer.toString(event.getCars().get(1).getId()));
 						//tableEvents.setText(i, 4, event.getParticipants().get(0).getName());
-						tableEvents.setWidget(i, 4, addParticipantWidget());
+						tableEvents.setWidget(i, 4, addParticipantWidget(event.getId()));
 						tableEvents.setText(i, 5, Integer.toString(event.getCars().size()));
+						wrapper.add(addCarWidget(event.getId()));
+						wrapper.add(addPassengerWidget(event.getId(),1));
+						tableEvents.setWidget(i, 6, wrapper);
 					}
 
 					public void onError(Request request, Throwable exception) {
@@ -219,32 +229,151 @@ public class gli implements EntryPoint {
 		return vp;
 	}
 	
-	public Widget addParticipantWidget(){
-		Panel root = new FlowPanel();
-		final Button addParticipantButton = new Button();
-		final Button sendButton = new Button();
+	public Widget addParticipantWidget(final int idEvent){
+		final Panel root = new HorizontalPanel();
+		final Button addParticipantButton = new Button("+");
+		final Button sendButton = new Button("Ajouter");
 		
-		HorizontalPanel hp1 = new HorizontalPanel();
-		Label nameLabel = new Label("Nom :");
+		final HorizontalPanel hp1 = new HorizontalPanel();
+		final Label nameLabel = new Label("Nom:");
 		final TextBox nameTextBox = new TextBox();
 		hp1.add(nameLabel);
 		hp1.add(nameTextBox);
 		hp1.add(sendButton);
 		
+		addParticipantButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				root.add(hp1);
+				root.remove(addParticipantButton);
+			}
+		});
+		sendButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.POST,
+						GWT.getHostPageBaseURL()+ "rest/participate/"+nameTextBox.getText()+"/"+idEvent);
+				rb.setCallback(new RequestCallback() {
+					public void onResponseReceived(Request request, Response response) {
+					}
+					public void onError(Request request, Throwable exception) {
+						Window.alert(exception.getMessage());
+					}
+				});
+				try {
+					rb.send();
+					root.remove(hp1);
+					root.add(addParticipantButton);
+				} catch (RequestException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 		root.add(addParticipantButton);
-		root.add(hp1);
+		return root;
+				
+	}
+	
+	public Widget addPassengerWidget(final int idEvent, final int idCar){
+		final Panel root = new HorizontalPanel();
+		final Button addPassengerButton = new Button("+");
+		final Button sendButton = new Button("Ajouter");
+		
+		final HorizontalPanel hp1 = new HorizontalPanel();
+		final Label nameLabel = new Label("Nom:");
+		final TextBox nameTextBox = new TextBox();
+		hp1.add(nameLabel);
+		hp1.add(nameTextBox);
+		hp1.add(sendButton);
+		
+		addPassengerButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				root.add(hp1);
+				root.remove(addPassengerButton);
+			}
+		});
+		
+		sendButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				String namePassenger = nameTextBox.getText();
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.POST,
+						GWT.getHostPageBaseURL()+ "rest/addPassenger/"+nameTextBox.getText()+"/"+idCar);
+				rb.setCallback(new RequestCallback() {
+					public void onResponseReceived(Request request, Response response) {
+					}
+					public void onError(Request request, Throwable exception) {
+						Window.alert(exception.getMessage());
+					}
+				});
+				try {
+					rb.send();
+					root.remove(hp1);
+					root.add(addPassengerButton);
+				} catch (RequestException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		root.add(addPassengerButton);
+		return root;
+				
+	}
+	
+	public Widget addCarWidget(final int idEvent){
+		final Panel root = new HorizontalPanel();
+		final Button addPassengerButton = new Button("Ajouter voiture");
+		final Button sendButton = new Button("Ajouter");
+		
+		final HorizontalPanel hp1 = new HorizontalPanel();
+		final Label nameLabel = new Label("Nombre de places:");
+		final TextBox nbPlaceTextBox = new TextBox();
+		hp1.add(nameLabel);
+		hp1.add(nbPlaceTextBox);
+		hp1.add(sendButton);
+		
+		addPassengerButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				root.add(hp1);
+				root.remove(addPassengerButton);
+			}
+		});
+		
+		sendButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent clickEvent) {
+				
+				RequestBuilder rb = new RequestBuilder(RequestBuilder.POST,
+						GWT.getHostPageBaseURL()+ "rest/addCar/"+nbPlaceTextBox.getText()+"/"+idEvent);
+				rb.setCallback(new RequestCallback() {
+					public void onResponseReceived(Request request, Response response) {
+					}
+					public void onError(Request request, Throwable exception) {
+						Window.alert(exception.getMessage());
+					}
+				});
+				try {
+					rb.send();
+					root.remove(hp1);
+					root.add(addPassengerButton);
+				} catch (RequestException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		root.add(addPassengerButton);
 		return root;
 				
 	}
 
 	public void onModuleLoad() {
-		HorizontalPanel Hpanel = new HorizontalPanel();
+		Panel panel = new HorizontalPanel();
 		VerticalPanel Vpanel = new VerticalPanel();
 		Vpanel.add(searchWidget());
 		Vpanel.add(displayWidget());
-		Hpanel.add(Vpanel);
-		Hpanel.add(addEventWidget());
-		root.add(Hpanel);
+		panel.add(Vpanel);
+		panel.add(addEventWidget());
+		root.add(panel);
 	}
 
 }
