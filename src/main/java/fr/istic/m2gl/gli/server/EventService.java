@@ -50,6 +50,14 @@ public class EventService {
 				"FROM Event WHERE id="+id).getSingleResult();
 		return(event);
 	}
+	
+	public List<Participant> getParticipants(int idEvent){
+		return manager.createQuery("SELECT e.participants FROM Event e WHERE e.id='"+idEvent+"'").getResultList();
+	}
+	
+	public List<Car> getCars(int idEvent){
+		return manager.createQuery("SELECT e.cars FROM Event e WHERE e.id='"+idEvent+"'").getResultList();
+	}
 
 	public Participant addParticipant(int idEvent, String name){
 		tx.begin();

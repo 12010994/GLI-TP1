@@ -7,6 +7,9 @@ h1 {
 	color: #3865c8;
 	text-align: center;
 }
+h2 {
+	font: grey;
+}
 
 .sendButton {
 	display: block;
@@ -29,6 +32,25 @@ h1 {
 
 .serverResponseLabelError {
 	color: red;
+}
+
+.tableEvents {
+	border-top: thin solid #444444;
+	border-left: thin solid #444444;
+	border-right: thin solid #111111;
+	border-bottom: thin solid #111111;
+}
+
+.addEvent {
+	border: dashed 3px #3290d1;
+  	border-radius: 10px 10px 10px 10px;
+  	padding: 10px;
+}
+
+.tableWidget{
+	border: dashed 3px #3290d1;
+  	border-radius: 10px 10px 10px 10px;
+  	padding: 10px;
 }
 
 /** Set ids using widget.getElement().setId("idOfElement") */

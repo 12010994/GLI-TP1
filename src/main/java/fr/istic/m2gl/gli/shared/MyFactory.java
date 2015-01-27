@@ -12,4 +12,8 @@ public interface MyFactory extends AutoBeanFactory {
 	AutoBean<CarItf> car1();
 	
 	AutoBean<EventListItf>  eventListItf();
+	
+	AutoBean<ParticipantListItf> participantListItf();
+	
+	AutoBean<CarListItf> carListItf();
 }

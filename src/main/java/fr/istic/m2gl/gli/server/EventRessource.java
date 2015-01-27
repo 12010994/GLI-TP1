@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import fr.istic.m2gl.gli.shared.Car;
 import fr.istic.m2gl.gli.shared.CarItf;
 import fr.istic.m2gl.gli.shared.Event;
 import fr.istic.m2gl.gli.shared.EventItf;
@@ -34,6 +35,22 @@ public class EventRessource {
 	public EventItf getEvent(@PathParam("id")int idEvent){
 		System.out.println("Return the event selected by the id");
 		return JpaTest.eventService.getEvent(idEvent);
+	}
+	
+	@GET
+	@Path("events/{id}/participants")
+	@Produces({MediaType.APPLICATION_JSON })
+	public List<Participant> getEventParticipants(@PathParam("id")int idEvent){
+		System.out.println("Return the partcipants list of the event selected by the id");
+		return JpaTest.eventService.getParticipants(idEvent);
+	}
+	
+	@GET
+	@Path("events/{id}/cars")
+	@Produces({MediaType.APPLICATION_JSON })
+	public List<Car> getEventCars(@PathParam("id")int idEvent){
+		System.out.println("Return the cars list of the event selected by the id");
+		return JpaTest.eventService.getCars(idEvent);
 	}
 	
 	@POST
